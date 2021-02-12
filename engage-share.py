@@ -1,8 +1,12 @@
 import json
 import getpass
 from os import name, path, listdir
+from pydrive.drive import GoogleDrive 
+from pydrive.auth import GoogleAuth
+from pydrive.files import ApiRequestError 
 CURR_VERSION = 0.1
-
+# This shows an example of a intergration with a possible upload api 
+# In this case using google drive
 def initalize(settingPath="settings.json",forceRegen=False):
     if path.exists(settingPath) and not forceRegen:
         with open(settingPath,"r") as fp:
@@ -44,13 +48,39 @@ def main():
         if fileName not in userSettings["upload-list"]:
             if input(fileName + " has been detected but not uploaded \
                 \nWould you like to upload? (y/n)") == "y":
-                if uploadFile(fileName): userSettings["Recording-Path"].append(fileName) 
+                if uploadFile(fileName,userSettings["Recording-Path"]): 
+                    userSettings["upload-list"].append(fileName) 
+                    print(fileName + "has been uploaded!")
 
 
 
 # api intergration to be decided
-def uploadFile(fileName):
-    return False
+def uploadFile(fileName,filePath):
+    # Below code does the authentication 
+    # part of the code 
+    gauth = GoogleAuth() 
+    
+    # Creates local webserver and auto 
+    # handles authentication. 
+    gauth.LocalWebserverAuth()        
+    drive = GoogleDrive(gauth) 
+    f = drive.CreateFile({'title': fileName}) 
+    f.SetContentFile(path.join(filePath, fileName)) 
+    try:
+        f.Upload() 
+    except ApiRequestError as e:
+        print(e)
+        f = None
+        return False
+      
+    # Due to a known bug in pydrive if we  
+    # don't empty the variable used to 
+    # upload the files to Google Drive the 
+    # file stays open in memory and causes a 
+    # memory leak, therefore preventing its  
+    # deletion 
+    f = None
+    return True
 
 if __name__ == "__main__":
     # execute only if run as a script
