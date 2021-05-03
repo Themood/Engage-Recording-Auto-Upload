@@ -125,3 +125,7 @@ dmypy.json
 .pyre/
 settings.json
 client_secrets.json
+*.json
+*.myrec
+androidkey
+androidkey.pub
