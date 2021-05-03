@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style type="text/css">
+    body,html { font-family: Arial; font-size: 11pt; background-color: gray;}
+    div.msg { margin: 0.2em; line-height: 1.4em; }
+    b { background: #ccc; font-weight: bold; font-size: 10pt;
+        padding: 0.1em 0.2em; }
+    b.Python { background: #eee; }
+    i { font-family: Courier new; font-size: 10pt; border: #eee 1px solid;
+        padding: 0.1em 0.2em; }
+    </style>
+
+    <script>
+    var fileMap = new Map();
+    var counter = 1;
+    var declaredPath = null;
+    function js_print(lang, event, msg) {
+        msg = "<b class="+lang+">"+lang+": "+event+":</b> " + msg;
+        console = document.getElementById("console");
+        console.innerHTML += "<div class=msg>"+msg+"</div>";
+    }
+    function file_button(lang,event,msg) {
+        fileName = msg
+        fileMap[counter] = fileName
+        msg = "<b class="+lang+">"+lang+": "+event+":</b> " + msg;
+        console = document.getElementById("console")
+        console.innerHTML += "<div class=msg onclick=uploadFile(this) id=" + counter+">"+msg+"</div>"
+        counter += 1
+    }
+    function uploadFile(div) {
+        if (confirm("Are you sure you want to upload \"" + fileMap[div.id] + "\"?")){
+            console = document.getElementById("console")
+            console.removeChild(div)
+            external.uploadFile(fileMap[div.id])
+        }
+    }
+    window.onload = function(){
+        if (!settings_found){
+            loadSettingNT()
+        }
+        else loadInterface();
+        
+    }
+
+    function loadSettingNT(){
+        console = document.getElementById("console");
+        console.innerHTML += '<form><div class=msg>Are you using Engage on this computer or a mobile platform (including standalone VR headsets)? <br>' +
+            '<input id="PC" type="radio" name="mobile" value="false" onchange=showPC(this) required> PC <br>' +
+            '<input id="Mobile" type="radio" name="mobile" value="false" onchange=showMobile(this) required> Mobile <br> </div><form>'
+        }
+
+    function showMobile(){
+        console = document.getElementById("console");
+        console.innerHTML = 'Make sure your device is plugged in, USB debugging is on, MTP transfer is on, and allow any authorization <input type="button" value="Detect Device" onclick=mobileInit(callback_3)>'
+    }
+
+    function showPCMB(path){
+        textinput = document.getElementById("checkfordefault")
+        if (path === "") {
+            textinput.innerHTML = "Connect your device and confirm that you can browes the devies files in the file explorer." + 
+            "Press 'Select Folder' and use the exploer pop to find the engage app folder and select its recording folder"
+        }
+    }
+
+    function showPC(){
+        console = document.getElementById("console");
+        console.innerHTML = '<div id="checkfordefault"></div><input type="button" value="Select folder" onclick=fileBrowserPopup(declaredPath,callback_2)>' +
+        '<div id=path>Current path: ' + declaredPath + '</div>'
+        findPCPathJSCall(showPCCB)
+    } 
+
+    function showPCCB(path){
+        textinput = document.getElementById("checkfordefault")
+        if (path === "") {
+            textinput.innerHTML = "Default file path not found, please select a folder with your recordings"
+        }
+        else {
+            textinput.innerHTML = "Default file path detected, you can select a different folder for the program to check for recordings if you'd like"
+            declaredPath = path
+            document.getElementById("path").innerHTML = 'Current path: ' + declaredPath 
+            textinput.innerHTML += "<input type=button value='done' onclick=restart(declaredPath)>"
+        }
+       
+
+    }
+
+    function restart(path){
+        external.PCPath(path)
+        location.reload();
+    }
+
+    function callback_2(path){
+        declaredPath = path
+        document.getElementById("path").innerHTML = 'Current path: ' + declaredPath
+    }
+
+    function callback_3(returnVal){
+        console = document.getElementById("console");
+        if (returnVal) {
+            console.innerHTML += '<br> Device was found <input type="button" value="Start program" onclick=loadInterface()>'
+        }
+        else {
+            console.innerHTML += '<br> Device was not found, make sure device is pressed and try again <input type="button" value="try again" onclick=showMobile()>'
+        }
+    }
+
+    function loadInterface(){
+        js_print("Javascript", "user", user);
+        js_print("Javascript", "navigator.platformName", platformName);
+        js_print("Javascript", "upload-list", uploadList);
+        external.listFiles()
+        tools = document.getElementById("tools");
+        tools.innerHTML = "<button onclick='changeFolder()'> Change Google Drive Folder ID </button>"  
+    }
+    function changeFolder() {
+        var folderID = prompt("Please enter the id of the folder you wish to upload to on Google Drive");
+        if (folderID == null || folderID == ""){
+            alert("folderID was not changed")
+        }
+        else (
+            external.setFolderID(folderID,folderIDCallback)
+        )
+    }
+    function folderIDCallback(result){
+        if (result === "True"){
+            alert("folderID is valid")
+        }
+        else {
+            alert("Inputted folderID is invalid and was not changed")
+        }
+        
+    }
+/*     function js_callback_1(ret) {
+        js_print("Javascript", "html_to_data_uri", ret);
+    }
+
+    function js_callback_2(msg, py_callback) {
+        js_print("Javascript", "js_callback", msg);
+        py_callback("String sent from Javascript");
+    }
+
+    window.onload = function(){
+        js_print("Javascript", "window.onload", "Called");
+        js_print("Javascript", "python_property", python_property);
+        js_print("Javascript", "navigator.userAgent", navigator.userAgent);
+        js_print("Javascript", "cefpython_version", cefpython_version.version);
+        html_to_data_uri("test", js_callback_1);
+        external.test_multiple_callbacks(js_callback_2);
+    }; */
+    </script>
+</head>
+<body>
+    <div id="console"></div>
+    <br><div id="tools"></div>
+</body>
+</html>
