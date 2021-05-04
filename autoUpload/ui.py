@@ -8,7 +8,7 @@ from os import path as p
 import time
 import tkinter as tk
 from tkinter import filedialog
-import engageShare as es
+from . import engageShare as es
 import base64
 import platform
 import sys
@@ -35,7 +35,7 @@ def main():
     cef.Initialize(settings=settings)
     #set_global_handler()
 
-    browser = cef.CreateBrowserSync(url="file:///mainlayout.html",
+    browser = cef.CreateBrowserSync(url="file:///autoUpload/mainlayout.html",
                                     window_title="Engage share")
     set_client_handlers(browser)
     global external
