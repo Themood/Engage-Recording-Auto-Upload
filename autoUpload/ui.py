@@ -3,7 +3,7 @@
 
 from logging import raiseExceptions
 from cefpython3 import cefpython as cef
-from os import name, listdir,remove
+from os import name, listdir,remove,getcwd,chdir
 from os import path as p
 import time
 import tkinter as tk
@@ -31,12 +31,27 @@ def main():
     settings = {
         # "product_version": "MyProduct/10.00",
         # "user_agent": "MyAgent/20.00 MyProduct/10.00",
+        "file_access_from_file_urls_allowed" : True,
+        "web_security_disabled" : True 
     }
-    cef.Initialize(settings=settings)
+    cef.Initialize()
     #set_global_handler()
-
-    browser = cef.CreateBrowserSync(url="file:///autoUpload/mainlayout.html",
-                                    window_title="Engage share")
+    
+    if (platform.system()  == 'Darwin'):
+        chdir(p.sep.join(sys.argv[0].split(p.sep)[:-1]))
+    print(getcwd())
+    '''
+    with open('./autoUpload/mainlayout.html','r') as file:
+        html = file.read()
+        html = html.encode("utf-8", "replace")
+        b64 = base64.b64encode(html).decode("utf-8", "replace")
+        ret = "data:text/html;base64,{data}".format(data=b64)
+    #print(ret)
+    '''
+    browser = cef.CreateBrowserSync(url="file://" + getcwd() +
+                                    "/autoUpload/mainlayout.html",
+                                window_title="Engage share",settings=settings)
+    
     set_client_handlers(browser)
     global external
     external = External(browser)
